@@ -9,15 +9,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # 1. Checkout repository
     - uses: actions/checkout@v4
 
+    # 2. Setup Java dengan versi yang lebih kompatibel bagi KSP template lama
     - name: set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
-        distribution: 'zulu'
+        distribution: 'temurin'
         cache: gradle
 
+    # 3. Validasi & otomatisasi Gradle wrapper lokal
     - name: Validate or Generate Gradle Wrapper
       run: |
         if [ ! -f "gradlew" ]; then
@@ -26,12 +29,15 @@ jobs:
         fi
         chmod +x gradlew
 
+    # 4. Membuat file .env untuk menampung API Key Gemini Anda
     - name: Create .env file
       run: echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
 
+    # 5. Menjalankan proses compile dengan mengabaikan beberapa warning daemon compiler
     - name: Build with Gradle
-      run: ./gradlew assembleDebug
+      run: ./gradlew assembleDebug --no-daemon
 
+    # 6. Upload file APK jika proses sukses
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
