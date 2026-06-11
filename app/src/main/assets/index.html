@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Digital Product Box Mockup Generator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- OrbitControls CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212;
+        }
+        pre, code {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom scrollbar for control sidebar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #121212;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2C2C2C;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #D0BCFF;
+        }
+        /* Custom range slider styling */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: #2C2C2C;
+            border-radius: 5.5px;
+            outline: none;
+            transition: background 0.3s;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #D0BCFF;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(208, 188, 255, 0.7);
+            transition: transform 0.1s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+        /* Glass card effect */
+        .glass-card {
+            background: rgba(26, 26, 26, 0.85);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        /* Glowing text & border accents */
+        .neon-text-cyan {
+            color: #D0BCFF;
+            text-shadow: 0 0 8px rgba(208, 188, 255, 0.4);
+        }
+        .neon-text-pink {
+            color: #D0BCFF;
+            text-shadow: 0 0 10px rgba(208, 188, 255, 0.5);
+        }
+        .neon-border-pink:hover {
+            border-color: #D0BCFF;
+            box-shadow: 0 0 12px rgba(208, 188, 255, 0.25);
+        }
+        .neon-border-cyan:focus-within {
+            border-color: #D0BCFF;
+            box-shadow: 0 0 12px rgba(208, 188, 255, 0.25);
+        }
+        /* Transition utility */
+        .smooth-transition {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* Custom badge */
+        .badge-premium {
+            background: linear-gradient(135deg, #D0BCFF 0%, #381E72 100%);
+            box-shadow: 0 4px 10px rgba(208, 188, 255, 0.3);
+        }
+        /* Floating notification */
+        .notification {
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="text-[#E0E0E0] min-h-screen overflow-x-hidden flex flex-col">
+
+    <!-- Header bar -->
+    <header class="w-full bg-[#1A1A1A] border-b border-[#2C2C2C] py-4 px-6 md:px-8 flex flex-row items-center justify-between sticky top-0 z-40">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 bg-[#D0BCFF] rounded-lg flex items-center justify-center">
+                <div class="w-4 h-4 border-2 border-[#111111] rotate-45"></div>
+            </div>
+            <div>
+                <h1 class="font-bold text-white tracking-tight text-base md:text-lg">3D Box <span class="neon-text-pink">Pro</span></h1>
+                <p class="text-[10px] text-stone-400 font-mono tracking-widest uppercase text-left opacity-80">Digital Product Box Mockup</p>
+            </div>
+        </div>
+        <button id="copy-app-code" class="smooth-transition px-4 py-2 rounded-full text-xs font-bold bg-[#D0BCFF] text-[#381E72] hover:bg-[#EADDFF] flex items-center gap-2 shadow-lg shadow-[#D0BCFF]/10 active:scale-95 transition-transform">
+            <span>📋 COPY CODE</span>
+        </button>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="flex-1 w-full flex flex-col md:flex-row h-full">
+
+        <!-- Sidebar Panel Kontrol (Left side) -->
+        <section class="w-full md:w-[400px] bg-[#1A1A1A] border-r border-[#2C2C2C] p-6 flex flex-col gap-6 overflow-y-auto max-h-none md:max-h-[calc(100vh-73px)] z-30">
+            
+            <!-- Section Header -->
+            <div>
+                <h2 class="text-[11px] font-bold text-[#D0BCFF] uppercase tracking-wider mb-1">Pengaturan Kotak</h2>
+                <div class="h-0.5 w-12 bg-[#D0BCFF] rounded-full"></div>
+            </div>
+
+            <!-- 1. Text & Branding Editor -->
+            <div class="flex flex-col gap-4 bg-[#1E1E1E] p-4 rounded-xl border border-[#2C2C2C]">
+                <h3 class="text-xs font-bold text-[#D0BCFF] uppercase tracking-wider flex items-center gap-2">
+                    <span>✏️</span> Judul Template Default
+                </h3>
+                <div class="flex flex-col gap-3">
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-stone-400 mb-1 block">Judul Produk</label>
+                        <input id="input-title" type="text" value="MASTERCLASS" class="w-full bg-[#121212] border border-[#333] rounded-lg px-3 py-2 text-sm text-[#E0E0E0] focus:outline-none focus:border-[#D0BCFF] focus:ring-1 focus:ring-[#D0BCFF]/30 transition-all placeholder-stone-600" placeholder="Ubah judul...">
+                    </div>
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-stone-400 mb-1 block">Subtitle / Deskripsi</label>
+                        <input id="input-subtitle" type="text" value="3D DIGITAL MOCKUP CREATOR" class="w-full bg-[#121212] border border-[#333] rounded-lg px-3 py-2 text-sm text-[#E0E0E0] focus:outline-none focus:border-[#D0BCFF] focus:ring-1 focus:ring-[#D0BCFF]/30 transition-all placeholder-stone-600" placeholder="Ubah deskripsi...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Box dimension customization -->
+            <div class="flex flex-col gap-5">
+                <h3 class="text-xs font-bold text-[#D0BCFF] uppercase tracking-wider flex items-center gap-2">
+                    <span>📏</span> Dimensi Ukuran (Custom)
+                </h3>
+                
+                <!-- Lebar (Width) -->
+                <div class="flex flex-col gap-1.5">
+                    <div class="flex justify-between items-center text-[10px] uppercase font-bold text-stone-400">
+                        <span>Lebar Kotak (Width)</span>
+                        <span id="label-width" class="text-[#D0BCFF] font-mono">1.2x</span>
+                    </div>
+                    <input id="slider-width" type="range" min="0.3" max="2.5" step="0.05" value="1.2">
+                </div>
+
+                <!-- Tinggi (Height) -->
+                <div class="flex flex-col gap-1.5">
+                    <div class="flex justify-between items-center text-[10px] uppercase font-bold text-stone-400">
+                        <span>Tinggi Kotak (Height)</span>
+                        <span id="label-height" class="text-[#D0BCFF] font-mono">1.6x</span>
+                    </div>
+                    <input id="slider-height" type="range" min="0.5" max="3.0" step="0.05" value="1.6">
+                </div>
+
+                <!-- Tebal (Depth) -->
+                <div class="flex flex-col gap-1.5">
+                    <div class="flex justify-between items-center text-[10px] uppercase font-bold text-stone-400">
+                        <span>Tebal Samping (Depth)</span>
+                        <span id="label-depth" class="text-[#D0BCFF] font-mono">0.4x</span>
+                    </div>
+                    <input id="slider-depth" type="range" min="0.1" max="1.5" step="0.05" value="0.4">
+                </div>
+            </div>
+
+            <hr class="border-[#2C2C2C] my-1">
+
+            <!-- 3. Cover Image Upload Controls -->
+            <div class="flex flex-col gap-4">
+                <h3 class="text-xs font-bold text-[#D0BCFF] uppercase tracking-wider flex items-center gap-2">
+                    <span>🖼️</span> Texture Assets
+                </h3>
+                <p class="text-[11px] text-stone-400 -mt-2">Upload gambar untuk setiap sisi. Sistem otomatis memotong (auto-crop) secara proporsional agar tekstur presisi.</p>
+
+                <!-- Cover Depan (Front) -->
+                <div class="flex flex-col gap-1.5">
+                    <span class="text-[10px] uppercase font-bold text-stone-300">Sisi Depan (Cover)</span>
+                    <div class="flex items-center gap-3">
+                        <label class="flex-1 cursor-pointer">
+                            <span class="flex items-center justify-center gap-2 border-2 border-dashed border-[#444] bg-[#2C2C2C] hover:bg-[#333] hover:border-[#D0BCFF] active:bg-[#333] text-xs py-2.5 px-3 rounded-xl text-stone-300 transition-all font-semibold">
+                                📁 Upload Cover Depan
+                            </span>
+                            <input id="upload-front" type="file" accept="image/*" class="hidden">
+                        </label>
+                        <div id="preview-front" class="w-10 h-10 rounded-lg border border-[#333] bg-[#121212] flex items-center justify-center text-xs text-stone-400 font-mono overflow-hidden">
+                            Def
+                        </div>
+                        <button id="reset-front" class="text-xs text-stone-500 hover:text-rose-400 h-8 px-2 transition-all" title="Reset ke Default">✖</button>
+                    </div>
+                </div>
+
+                <!-- Cover Samping (Spine) -->
+                <div class="flex flex-col gap-1.5">
+                    <span class="text-[10px] uppercase font-bold text-stone-300">Sisi Samping (Spine)</span>
+                    <div class="flex items-center gap-3">
+                        <label class="flex-1 cursor-pointer">
+                            <span class="flex items-center justify-center gap-2 border-2 border-dashed border-[#444] bg-[#2C2C2C] hover:bg-[#333] hover:border-[#D0BCFF] active:bg-[#333] text-xs py-2.5 px-3 rounded-xl text-stone-300 transition-all font-semibold">
+                                📁 Upload Sisi Samping
+                            </span>
+                            <input id="upload-spine" type="file" accept="image/*" class="hidden">
+                        </label>
+                        <div id="preview-spine" class="w-10 h-10 rounded-lg border border-[#333] bg-[#121212] flex items-center justify-center text-xs text-stone-400 font-mono overflow-hidden">
+                            Def
+                        </div>
+                        <button id="reset-spine" class="text-xs text-stone-500 hover:text-rose-400 h-8 px-2 transition-all" title="Reset ke Default">✖</button>
+                    </div>
+                </div>
+
+                <!-- Cover Atas (Top) -->
+                <div class="flex flex-col gap-1.5">
+                    <span class="text-[10px] uppercase font-bold text-stone-300">Sisi Atas (Top Cover)</span>
+                    <div class="flex items-center gap-3">
+                        <label class="flex-1 cursor-pointer">
+                            <span class="flex items-center justify-center gap-2 border-2 border-dashed border-[#444] bg-[#2C2C2C] hover:bg-[#333] hover:border-[#D0BCFF] active:bg-[#333] text-xs py-2.5 px-3 rounded-xl text-stone-300 transition-all font-semibold">
+                                📁 Upload Sisi Atas
+                            </span>
+                            <input id="upload-top" type="file" accept="image/*" class="hidden">
+                        </label>
+                        <div id="preview-top" class="w-10 h-10 rounded-lg border border-[#333] bg-[#121212] flex items-center justify-center text-xs text-stone-400 font-mono overflow-hidden">
+                            Def
+                        </div>
+                        <button id="reset-top" class="text-xs text-stone-500 hover:text-rose-400 h-8 px-2 transition-all" title="Reset ke Default">✖</button>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="border-[#2C2C2C] my-1">
+
+            <!-- 4. Environment & Lighting Options -->
+            <div class="flex flex-col gap-3">
+                <h3 class="text-xs font-bold text-[#D0BCFF] uppercase tracking-wider flex items-center gap-2">
+                    <span>💡</span> Nuansa Pencahayaan
+                </h3>
+                <div class="grid grid-cols-2 gap-2">
+                    <button class="light-preset-btn active px-3 py-1.5 rounded-lg text-xs bg-[#D0BCFF] text-[#381E72] font-semibold border border-transparent hover:brightness-110 tracking-wide transition-all" data-preset="studio">
+                        Studio Soft
+                    </button>
+                    <button class="light-preset-btn px-3 py-1.5 rounded-lg text-xs bg-[#2C2C2C] text-stone-300 font-medium border border-[#444] hover:border-stone-400 tracking-wide transition-all" data-preset="neon">
+                        Electric Neon
+                    </button>
+                    <button class="light-preset-btn px-3 py-1.5 rounded-lg text-xs bg-[#2C2C2C] text-stone-300 font-medium border border-[#444] hover:border-stone-400 tracking-wide transition-all" data-preset="cinematic">
+                        Cinematic Front
+                    </button>
+                    <button class="light-preset-btn px-3 py-1.5 rounded-lg text-xs bg-[#2C2C2C] text-stone-300 font-medium border border-[#444] hover:border-stone-400 tracking-wide transition-all" data-preset="mystery">
+                        Mystic Shadow
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-auto pt-4 flex flex-col gap-3">
+                <button id="reset-rotation" class="w-full text-xs hover:text-[#D0BCFF] text-stone-400 transition-all font-medium py-1">
+                    🔄 Reset Mutasi Sudut Putar Box
+                </button>
+                <button id="download-mockup" class="w-full py-4 bg-[#D0BCFF] text-[#381E72] rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl active:bg-[#EADDFF] flex items-center justify-center gap-2 transform active:scale-95 transition-all">
+                    <span>Download PNG (Transparent)</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Right Side: 3D Visualization Area -->
+        <section class="flex-1 bg-[#000000] relative flex items-center justify-center min-h-[350px] md:min-h-[400px]">
+            <!-- Radial background grid spacing -->
+            <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(#333 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+            <!-- Canvas bounding box indicator overlay -->
+            <div class="absolute inset-4 rounded-2xl border border-white/5 pointer-events-none flex flex-col justify-between p-4 bg-gradient-to-t from-stone-950/25 to-transparent z-20">
+                <div class="flex justify-between items-center text-[10px] text-stone-500 font-mono tracking-widest">
+                    <span>CANVAS RENDERING AREA</span>
+                    <span>3D_ORTHO_CAM_1.0F</span>
+                </div>
+                
+                <!-- Center pointer hint -->
+                <div class="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
+                    <div class="w-8 h-[1px] bg-white"></div>
+                    <div class="h-8 w-[1px] bg-white absolute"></div>
+                </div>
+
+                <div class="flex justify-between items-end">
+                    <div class="text-[10px] text-[#938F99] font-mono">
+                        <p class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#D0BCFF] animate-pulse"></span> SYSTEM ONLINE</p>
+                    </div>
+                    <div class="text-[10px] text-[#938F99] font-mono text-right flex flex-col gap-0.5">
+                        <span class="text-stone-400 font-semibold mb-1">💡 Tips Interaksi:</span>
+                        <span>🖱️ KLIK KIRI & SERET untuk Putar Kotak</span>
+                        <span>🖱️ KLIK KANAN & SERET untuk Geser Posisi</span>
+                        <span>⚙️ SCROLL untuk memperbesar / memperkecil</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preloader indicator -->
+            <div id="renderer-loader" class="absolute flex flex-col items-center justify-center gap-3 z-30">
+                <div class="w-10 h-10 border-4 border-[#D0BCFF]/20 border-t-[#D0BCFF] rounded-full animate-spin"></div>
+                <span class="text-xs text-stone-400 font-mono tracking-widest">MEMUAT ENGINE 3D...</span>
+            </div>
+
+            <!-- The actual container where 3D Canvas is placed -->
+            <div id="canvas-container" class="w-full h-full absolute inset-0 z-10 cursor-grab active:cursor-grabbing"></div>
+        </section>
+
+    </main>
+
+    <!-- Hidden Rendering Canvases to build dynamic textures and auto-crop images -->
+    <div class="hidden">
+        <canvas id="front-canvas" width="1024" height="1364"></canvas>
+        <canvas id="spine-canvas" width="256" height="1364"></canvas>
+        <canvas id="top-canvas" width="1024" height="256"></canvas>
+        <canvas id="side-canvas" width="256" height="1364"></canvas>
+        <canvas id="bottom-canvas" width="1024" height="256"></canvas>
+    </div>
+
+    <!-- Copy App Code Modal overlay notification / Toast -->
+    <div id="toast-notif" class="notification fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-stone-900 border border-emerald-500/30 text-white rounded-xl px-5 py-3.5 shadow-2xl">
+        <div class="w-7 h-7 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">✓</div>
+        <div>
+            <h4 class="text-sm font-bold header-toast text-emerald-400">Kode Berhasil Disalin!</h4>
+            <p class="text-xs text-stone-300">Seluruh isi kode HTML aplikasi editor ini telah otomatis dimasukkan ke clipboard Anda.</p>
+        </div>
+    </div>
+
+    <!-- JavaScript logic -->
+    <script>
+        // Store uploaded images data or references
+        const customImages = {
+            front: null,
+            spine: null,
+            top: null
+        };
+
+        // DOM elements
+        const inputTitle = document.getElementById('input-title');
+        const inputSubtitle = document.getElementById('input-subtitle');
+        const sliderWidth = document.getElementById('slider-width');
+        const sliderHeight = document.getElementById('slider-height');
+        const sliderDepth = document.getElementById('slider-depth');
+        const labelWidth = document.getElementById('label-width');
+        const labelHeight = document.getElementById('label-height');
+        const labelDepth = document.getElementById('label-depth');
+
+        const uploadFront = document.getElementById('upload-front');
+        const uploadSpine = document.getElementById('upload-spine');
+        const uploadTop = document.getElementById('upload-top');
+        const previewFront = document.getElementById('preview-front');
+        const previewSpine = document.getElementById('preview-spine');
+        const previewTop = document.getElementById('preview-top');
+        const resetFront = document.getElementById('reset-front');
+        const resetSpine = document.getElementById('reset-spine');
+        const resetTop = document.getElementById('reset-top');
+
+        const loader = document.getElementById('renderer-loader');
+        const container = document.getElementById('canvas-container');
+        const copyBtn = document.getElementById('copy-app-code');
+        const toast = document.getElementById('toast-notif');
+        const downloadBtn = document.getElementById('download-mockup');
+        const resetRotationBtn = document.getElementById('reset-rotation');
+
+        // Hidden textures canvases to draw onto
+        const frontCanvas = document.getElementById('front-canvas');
+        const spineCanvas = document.getElementById('spine-canvas');
+        const topCanvas = document.getElementById('top-canvas');
+        const sideCanvas = document.getElementById('side-canvas');
+        const bottomCanvas = document.getElementById('bottom-canvas');
+
+        // ThreeJS variables
+        let scene, camera, renderer, boxMesh, controls, ambientLight, dirLight;
+        let matFront, matSpine, matTop, matSide, matBack, matBottom;
+        let texFront, texSpine, texTop, texSide, texBack, texBottom;
+
+        // Draw default cyberpunk templates on canvas
+        function drawFaceTemplate(faceType) {
+            const title = inputTitle.value.toUpperCase();
+            const subtitle = inputSubtitle.value.toUpperCase();
+
+            if (faceType === 'front') {
+                const ctx = frontCanvas.getContext('2d');
+                const w = frontCanvas.width;
+                const h = frontCanvas.height;
+
+                // Create a dark glowing premium gradient of the "Professional Polish" lavender theme
+                const grad = ctx.createLinearGradient(0, 0, w, h);
+                grad.addColorStop(0, '#1d1829');
+                grad.addColorStop(0.5, '#0e0d14');
+                grad.addColorStop(1, '#100e1a');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, w, h);
+
+                // Tech Grid overlay
+                ctx.strokeStyle = 'rgba(208, 188, 255, 0.05)';
+                ctx.lineWidth = 1;
+                const gridSize = 40;
+                for (let x = 0; x < w; x += gridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, h);
+                    ctx.stroke();
+                }
+                for (let y = 0; y < h; y += gridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(w, y);
+                    ctx.stroke();
+                }
+
+                // Cyber geometric glowing rings
+                ctx.strokeStyle = 'rgba(208, 188, 255, 0.1)';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(w / 2, h / 2 - 80, 240, 0, Math.PI * 2);
+                ctx.stroke();
+
+                ctx.strokeStyle = 'rgba(208, 188, 255, 0.05)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(w / 2, h / 2 - 80, 160, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Bright decorative neon line accent
+                ctx.fillStyle = '#D0BCFF';
+                ctx.fillRect(w * 0.15, h * 0.28, w * 0.7, 4);
+
+                // Premium badge
+                ctx.fillStyle = '#D0BCFF';
+                ctx.font = 'bold 22px "JetBrains Mono", monospace';
+                ctx.letterSpacing = '5px';
+                ctx.textAlign = 'center';
+                ctx.fillText('SPECIAL EDITION', w / 2, h * 0.24);
+
+                // Big Main Title
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 85px "Inter", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(title, w / 2, h * 0.42);
+
+                // Tech Subtitle
+                ctx.fillStyle = '#D0BCFF';
+                ctx.font = '600 28px "Inter", sans-serif';
+                ctx.letterSpacing = '2px';
+                ctx.fillText(subtitle, w / 2, h * 0.50);
+
+                // Abstract details cover preview
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(w * 0.25, h * 0.58, w * 0.5, 120);
+
+                ctx.fillStyle = 'rgba(208, 188, 255, 0.1)';
+                ctx.fillRect(w * 0.28, h * 0.60, w * 0.44, 18);
+
+                ctx.fillStyle = '#8e96a3';
+                ctx.font = '400 18px "JetBrains Mono", monospace';
+                ctx.fillText('POWERED BY THREE.JS VERTEX ENGINE', w / 2, h * 0.64);
+
+                // Bottom barcode details
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(w * 0.15, h * 0.85, w * 0.25, 45); // Fake Barcode lines placeholder
+                
+                // Draw manual lines of barcode
+                const bY = h * 0.85;
+                const bH = 45;
+                const bX = w * 0.15;
+                const bW = w * 0.25;
+                ctx.fillStyle = '#121212';
+                ctx.fillRect(bX, bY, bW, bH);
+                ctx.fillStyle = '#ffffff';
+                
+                let currentBarX = bX + 5;
+                while (currentBarX < bX + bW - 5) {
+                    const barWidth = Math.random() < 0.5 ? 2 : 5;
+                    ctx.fillRect(currentBarX, bY, barWidth, bH);
+                    currentBarX += barWidth + (Math.random() < 0.5 ? 3 : 5);
+                }
+
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.font = '14px "JetBrains Mono", monospace';
+                ctx.textAlign = 'left';
+                ctx.fillText('UPC #98512-T6Y', w * 0.15, h * 0.92);
+
+                // Copyright badge
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.textAlign = 'right';
+                ctx.font = '16px "Inter", sans-serif';
+                ctx.fillText('PRO DIGITAL SYSTEMS 2026©', w * 0.85, h * 0.88);
+                ctx.fillText('ALL RIGHTS RESERVED', w * 0.85, h * 0.91);
+
+                // Render badge bubble
+                ctx.fillStyle = '#D0BCFF';
+                ctx.beginPath();
+                ctx.roundRect(w * 0.70, h * 0.10, 140, 36, 18);
+                ctx.fill();
+                ctx.fillStyle = '#381E72';
+                ctx.font = 'bold 14px "Inter", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('100% QUALITY', w * 0.70 + 70, h * 0.10 + 22);
+
+            } else if (faceType === 'spine') {
+                const ctx = spineCanvas.getContext('2d');
+                const w = spineCanvas.width;
+                const h = spineCanvas.height;
+
+                // Spine gradient matching front
+                const grad = ctx.createLinearGradient(0, 0, w, h);
+                grad.addColorStop(0, '#100a1f');
+                grad.addColorStop(0.5, '#050409');
+                grad.addColorStop(1, '#020a10');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, w, h);
+
+                // Spine glowing linear border
+                ctx.fillStyle = 'rgba(208, 188, 255, 0.15)';
+                ctx.fillRect(0, 0, 8, h);
+                ctx.fillStyle = 'rgba(208, 188, 255, 0.15)';
+                ctx.fillRect(w - 8, 0, 8, h);
+
+                // Grid background accent
+                ctx.strokeStyle = 'rgba(208, 188, 255, 0.03)';
+                ctx.lineWidth = 1;
+                for (let y = 0; y < h; y += 30) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(w, y);
+                    ctx.stroke();
+                }
+
+                // Vertical text drawing
+                ctx.save();
+                ctx.translate(w / 2, h / 2);
+                ctx.rotate(Math.PI / 2); // Rotate 90 degree to display vertically
+
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                // Main Title on Spine
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 50px "Inter", sans-serif';
+                ctx.fillText(title, 0, -10);
+
+                // Subtitle on Spine
+                ctx.fillStyle = '#D0BCFF';
+                ctx.font = '600 18px "JetBrains Mono", monospace';
+                ctx.letterSpacing = '4px';
+                ctx.fillText('// MOCKUP GRAPHICS ENGINE', 0, 32);
+
+                ctx.restore();
+
+                // Decorative icons on top and bottom of spine
+                ctx.fillStyle = '#D0BCFF';
+                ctx.beginPath();
+                ctx.arc(w / 2, h * 0.08, 15, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#ffff';
+                ctx.font = 'bold 14px "JetBrains Mono", monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText('3D', w / 2, h * 0.93);
+
+            } else if (faceType === 'top') {
+                const ctx = topCanvas.getContext('2d');
+                const w = topCanvas.width;
+                const h = topCanvas.height;
+
+                // Top gradient
+                const grad = ctx.createLinearGradient(0, 0, w, h);
+                grad.addColorStop(0, '#18122b');
+                grad.addColorStop(1, '#0b0c10');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, w, h);
+
+                // High-tech network lines pattern
+                ctx.strokeStyle = 'rgba(0, 240, 255, 0.08)';
+                ctx.lineWidth = 1.5;
+                for (let i = 0; i < w; i += 50) {
+                    ctx.beginPath();
+                    ctx.moveTo(i, 0);
+                    ctx.lineTo(i + 150, h);
+                    ctx.stroke();
+                }
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 22px "JetBrains Mono", monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText('▼ BOX TOP OVERVIEW ▼', w / 2, h / 2 + 8);
+            }
+        }
+
+        // Auto-crop and draw image onto target canvas proportionally
+        function drawImageToCanvas(img, canvas) {
+            const ctx = canvas.getContext('2d');
+            const cw = canvas.width;
+            const ch = canvas.height;
+            
+            // Clear prior drawing
+            ctx.clearRect(0, 0, cw, ch);
+            
+            const imageRatio = img.width / img.height;
+            const canvasRatio = cw / ch;
+            
+            let sx, sy, sw, sh;
+            
+            if (imageRatio > canvasRatio) {
+                // Image is wider than canvas ratio -> crop horizontal edges (center crop)
+                sh = img.height;
+                sw = img.height * canvasRatio;
+                sx = (img.width - sw) / 2;
+                sy = 0;
+            } else {
+                // Image is taller than canvas ratio -> crop vertical edges (center crop)
+                sw = img.width;
+                sh = img.width / canvasRatio;
+                sx = 0;
+                sy = (img.height - sh) / 2;
+            }
+            
+            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, cw, ch);
+        }
+
+        // Redraw texture canvases
+        function updateTextures() {
+            // Draw either template or custom uploaded image
+            if (customImages.front) {
+                drawImageToCanvas(customImages.front, frontCanvas);
+            } else {
+                drawFaceTemplate('front');
+            }
+
+            if (customImages.spine) {
+                drawImageToCanvas(customImages.spine, spineCanvas);
+            } else {
+                drawFaceTemplate('spine');
+            }
+
+            if (customImages.top) {
+                drawImageToCanvas(customImages.top, topCanvas);
+            } else {
+                drawFaceTemplate('top');
+            }
+
+            // Side cover (usually same as spine or dark grey texture)
+            const sideCtx = sideCanvas.getContext('2d');
+            sideCtx.fillStyle = '#0f1115';
+            sideCtx.fillRect(0, 0, sideCanvas.width, sideCanvas.height);
+            // Draw subtle lines to simulate page pages
+            sideCtx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+            for (let x = 10; x < sideCanvas.width; x += 15) {
+                sideCtx.fillRect(x, 0, 1.5, sideCanvas.height);
+            }
+
+            // Bottom cover (usually black/dark grey metal)
+            const bottomCtx = bottomCanvas.getContext('2d');
+            bottomCtx.fillStyle = '#050608';
+            bottomCtx.fillRect(0, 0, bottomCanvas.width, bottomCanvas.height);
+
+            // Trigger updates in Three.js objects
+            if (texFront) texFront.needsUpdate = true;
+            if (texSpine) texSpine.needsUpdate = true;
+            if (texTop) texTop.needsUpdate = true;
+            if (texSide) texSide.needsUpdate = true;
+            if (texBottom) texBottom.needsUpdate = true;
+        }
+
+        // Initialize WebGL Three.js Viewport
+        function init3D() {
+            // Scene with alpha (transparent background)
+            scene = new THREE.Scene();
+
+            // Camera: Perspective camera
+            const aspect = container.clientWidth / container.clientHeight;
+            camera = new THREE.PerspectiveCamera(40, aspect, 0.1, 100);
+            camera.position.set(3, 2, 4);
+
+            // Renderer options: high precision, preservation buffer for screenshots, antialiasing
+            renderer = new THREE.WebGLRenderer({ 
+                antialias: true, 
+                alpha: true, 
+                preserveDrawingBuffer: true 
+            });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.0;
+
+            container.appendChild(renderer.domElement);
+
+            // Orbit controls for interactive rotation & zoom
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 1.1; // Limit tilt down below floor
+            controls.minDistance = 1.5;
+            controls.maxDistance = 10;
+
+            // Lighting setup based on standard Preset
+            ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+            scene.add(ambientLight);
+
+            dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+            dirLight.position.set(5, 8, 5);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 1024;
+            dirLight.shadow.mapSize.height = 1024;
+            dirLight.shadow.camera.near = 0.5;
+            dirLight.shadow.camera.far = 15;
+            const size = 3;
+            dirLight.shadow.camera.left = -size;
+            dirLight.shadow.camera.right = size;
+            dirLight.shadow.camera.top = size;
+            dirLight.shadow.camera.bottom = -size;
+            dirLight.shadow.bias = -0.0005;
+            scene.add(dirLight);
+
+            // Secondary subtle backlight for gorgeous rim edge styling
+            const fillLight = new THREE.DirectionalLight(0xD0BCFF, 0.6);
+            fillLight.position.set(-5, 2, -3);
+            scene.add(fillLight);
+
+            const bounceLight = new THREE.DirectionalLight(0x7b00ff, 0.4);
+            bounceLight.position.set(4, -4, 2);
+            scene.add(bounceLight);
+
+            // Initialize texture resources from standard canvas elements
+            texFront = new THREE.CanvasTexture(frontCanvas);
+            texSpine = new THREE.CanvasTexture(spineCanvas);
+            texTop = new THREE.CanvasTexture(topCanvas);
+            texSide = new THREE.CanvasTexture(sideCanvas);
+            texBottom = new THREE.CanvasTexture(bottomCanvas);
+
+            // Create materials array for Box dimensions mapped correctly
+            // Index 0: Right (+X) -> Page texture/side
+            // Index 1: Left (-X) -> Spine
+            // Index 2: Top (+Y) -> Top cover
+            // Index 3: Bottom (-Y) -> Bottom black base
+            // Index 4: Front (+Z) -> Front cover
+            // Index 5: Back (-Z) -> Mirror of front, or spine gradient
+            matSide = new THREE.MeshStandardMaterial({ map: texSide, roughness: 0.4, metalness: 0.1 });
+            matSpine = new THREE.MeshStandardMaterial({ map: texSpine, roughness: 0.15, metalness: 0.05 });
+            matTop = new THREE.MeshStandardMaterial({ map: texTop, roughness: 0.15, metalness: 0.05 });
+            matBottom = new THREE.MeshStandardMaterial({ map: texBottom, roughness: 0.6, metalness: 0.2 });
+            matFront = new THREE.MeshStandardMaterial({ map: texFront, roughness: 0.12, metalness: 0.1 });
+            matBack = new THREE.MeshStandardMaterial({ map: texSpine, roughness: 0.2, metalness: 0.1 }); // back mirror of spine to look authentic
+
+            // Create Geometry and BoxMesh
+            // BoxGeometry args: Width, Height, Depth
+            const geometry = new THREE.BoxGeometry(1, 1, 1);
+            
+            boxMesh = new THREE.Mesh(geometry, [
+                matSide,   // +X (Right)
+                matSpine,  // -X (Left)
+                matTop,    // +Y (Top)
+                matBottom, // -Y (Bottom)
+                matFront,  // +Z (Front)
+                matFront   // -Z (Back, reuse front or spine)
+            ]);
+            boxMesh.castShadow = true;
+            boxMesh.receiveShadow = true;
+            scene.add(boxMesh);
+
+            // Floor Grid helper for space feel (decorative)
+            const gridHelper = new THREE.GridHelper(20, 20, 0xD0BCFF, 0x222226);
+            gridHelper.position.y = -1.1;
+            scene.add(gridHelper);
+
+            // Handle window resizing
+            window.addEventListener('resize', onWindowResize);
+
+            // Set initial scale from sliders
+            updateBoxDimensions();
+
+            // Render default cover elements initially
+            updateTextures();
+
+            // Hide loader spin
+            loader.style.display = 'none';
+
+            // Animation Loop
+            animate();
+        }
+
+        // Apply slider custom sizes to ThreeJS mesh scale directly
+        function updateBoxDimensions() {
+            const w = parseFloat(sliderWidth.value);
+            const h = parseFloat(sliderHeight.value);
+            const d = parseFloat(sliderDepth.value);
+
+            // Update range slider text indicators
+            labelWidth.innerText = w.toFixed(2) + 'x';
+            labelHeight.innerText = h.toFixed(2) + 'x';
+            labelDepth.innerText = d.toFixed(2) + 'x';
+
+            if (boxMesh) {
+                boxMesh.scale.set(w, h, d);
+            }
+        }
+
+        // Lighting options preset selectors
+        function applyLightingPreset(presetName) {
+            if (presetName === 'studio') {
+                ambientLight.intensity = 0.8;
+                dirLight.intensity = 1.5;
+                dirLight.color.setHex(0xffffff);
+                dirLight.position.set(5, 8, 5);
+            } else if (presetName === 'neon') {
+                ambientLight.intensity = 0.3;
+                dirLight.intensity = 2.0;
+                dirLight.color.setHex(0x00f0ff);
+                dirLight.position.set(4, 5, 2);
+            } else if (presetName === 'cinematic') {
+                ambientLight.intensity = 0.4;
+                dirLight.intensity = 2.5;
+                dirLight.color.setHex(0xffaa66);
+                dirLight.position.set(0, 4, 6);
+            } else if (presetName === 'mystery') {
+                ambientLight.intensity = 0.15;
+                dirLight.intensity = 1.8;
+                dirLight.color.setHex(0xa600ff);
+                dirLight.position.set(-3, 6, 3);
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Subtle pulse of automatic rotating when dragging is idle
+            if (!controls.state === -1) {
+                boxMesh.rotation.y += 0.001;
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // Show customizable Toast Popup notification
+        function showNotification(titleText, descText) {
+            const heading = toast.querySelector('.header-toast');
+            const desc = toast.querySelector('p');
+            heading.innerText = titleText;
+            desc.innerText = descText;
+
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4500);
+        }
+
+        // File reader handler setup with dynamic preview & file loader
+        function setupFileInput(inputId, previewId, keyName) {
+            const fileInput = document.getElementById(inputId);
+            const previewEl = document.getElementById(previewId);
+
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const img = new Image();
+                        img.onload = function() {
+                            customImages[keyName] = img;
+                            // Update sidebar thumbnail preview
+                            previewEl.innerHTML = `<img src="${event.target.result}" class="w-full h-full object-cover">`;
+                            // Refresh ThreeJS canvas drawings
+                            updateTextures();
+                            showNotification("Cover Berhasil Dimuat", `Sisi ${keyName} diperbarui & dipotong proporsional!`);
+                        };
+                        img.src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        // Setup individual resets to default templates
+        function setupResetButton(buttonId, previewId, keyName) {
+            document.getElementById(buttonId).addEventListener('click', function() {
+                customImages[keyName] = null;
+                document.getElementById(previewId).innerHTML = "Def";
+                updateTextures();
+                showNotification("Dikembalikan ke Default", `Sisi ${keyName} kembali menggunakan style bawaan.`);
+            });
+        }
+
+        // Set up Listeners
+        function setupListeners() {
+            // Slider listeners
+            sliderWidth.addEventListener('input', updateBoxDimensions);
+            sliderHeight.addEventListener('input', updateBoxDimensions);
+            sliderDepth.addEventListener('input', updateBoxDimensions);
+
+            // Inputs editor listeners for instantaneous default template typing updates
+            inputTitle.addEventListener('input', updateTextures);
+            inputSubtitle.addEventListener('input', updateTextures);
+
+            // Image upload handles
+            setupFileInput('upload-front', 'preview-front', 'front');
+            setupFileInput('upload-spine', 'preview-spine', 'spine');
+            setupFileInput('upload-top', 'preview-top', 'top');
+
+            // Reset buttons setup
+            setupResetButton('reset-front', 'preview-front', 'front');
+            setupResetButton('reset-spine', 'preview-spine', 'spine');
+            setupResetButton('reset-top', 'preview-top', 'top');
+
+            // Light preset selectors
+            document.querySelectorAll('.light-preset-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.light-preset-btn').forEach(el => {
+                        el.classList.remove('active', 'bg-[#D0BCFF]', 'text-[#381E72]', 'font-semibold');
+                        el.classList.add('bg-[#2C2C2C]', 'text-stone-300', 'font-medium');
+                    });
+                    this.classList.add('active', 'bg-[#D0BCFF]', 'text-[#381E72]', 'font-semibold');
+                    this.classList.remove('bg-[#2C2C2C]', 'text-stone-300', 'font-medium');
+                    applyLightingPreset(this.dataset.preset);
+                });
+            });
+
+            // Reset Rotation button listener
+            resetRotationBtn.addEventListener('click', () => {
+                if (boxMesh) {
+                    boxMesh.rotation.set(0, 0, 0);
+                }
+                camera.position.set(3, 2, 4);
+                controls.target.set(0, 0, 0);
+                controls.update();
+                showNotification("Sudut Pandang Di-Reset", "Posisi kamera dan rotasi kotak telah diseimbangkan.");
+            });
+
+            // Capture screenshot & trigger download
+            downloadBtn.addEventListener('click', () => {
+                // Ensure scene is drawn perfectly before capture
+                renderer.render(scene, camera);
+                
+                // Get transparent base64 URL snapshot
+                const dataURL = renderer.domElement.toDataURL('image/png');
+                
+                // Create anchor element and trigger download
+                const link = document.createElement('a');
+                link.download = 'Mockup_Digital_Box_' + Date.now() + '.png';
+                link.href = dataURL;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showNotification("Mockup Diunduh!", "File PNG transparan beresolusi tinggi berhasil disimpan.");
+            });
+
+            // Copy whole HTML app code to clipboard cleanly
+            copyBtn.addEventListener('click', () => {
+                // Fetch current absolute page HTML or construct it flawlessly
+                let fullHtmlText = document.documentElement.outerHTML;
+                
+                // Prepend correct DOCTYPE which is missing in outerHTML
+                fullHtmlText = "<!DOCTYPE html>\n" + fullHtmlText;
+
+                navigator.clipboard.writeText(fullHtmlText).then(() => {
+                    showNotification("Kode Berhasil Disalin!", "Seluruh isi app editor siap dipasang di server manapun.");
+                }).catch(err => {
+                    console.error("Gagal menyalin: ", err);
+                    showNotification("Gagal Menyalin", "Peramban Anda menolak akses ke papan klip.");
+                });
+            });
+        }
+
+        // Initialize App
+        window.addEventListener('load', () => {
+            init3D();
+            setupListeners();
+        });
+    </script>
+</body>
+</html>

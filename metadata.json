@@ -1,0 +1,6 @@
+{
+  "name": "3D Box Mockup",
+  "description": "3D Digital Product Box Mockup Generator with custom dimensions, auto-cropping, and customizable covers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
